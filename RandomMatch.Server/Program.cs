@@ -42,10 +42,10 @@ namespace RandomMatch.Server
 
             var app = builder.Build();
 
-            using var scope = app.Services.CreateScope();
-            var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-            context.Database.EnsureDeleted();  // Удаляет ВСЮ базу
-            context.Database.EnsureCreated();  // Создаёт заново по моделям
+            //using var scope = app.Services.CreateScope();
+            //var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            //context.Database.EnsureDeleted();  // Удаляет ВСЮ базу
+            //context.Database.EnsureCreated();  // Создаёт заново по моделям
 
 
             app.UseDefaultFiles();

@@ -7,7 +7,7 @@ namespace RandomMatch.Server.Services;
 
 internal class Dialog
 {
-    private static ReplyKeyboardMarkup mainKeyboard = new ReplyKeyboardMarkup(new KeyboardButton("1"), new KeyboardButton("2"), new KeyboardButton("3"), new KeyboardButton("4"));
+    private static ReplyKeyboardMarkup mainKeyboard = new ReplyKeyboardMarkup(new KeyboardButton("❤️"), new KeyboardButton("💌 / 📹"), new KeyboardButton("👎"), new KeyboardButton("💤"));
     public static async Task TextMessage(ITelegramBotClient bot, TUser user, string message, PhotoSize[]? photo = null)
     {
         var chatId = user.ChatId;
@@ -18,8 +18,8 @@ internal class Dialog
                 switch (message)
                 {
                     case "/start":
-                        user.State = StateUser.New1;
-                        await bot.SendMessage(chatId, "Укажи свой возраст:");
+                        user.State = StateUser.New01;
+                        await bot.SendMessage(chatId, "Укажи какой возраст ищем:");
                         break;
 
                     default:
@@ -27,8 +27,20 @@ internal class Dialog
                         break;
                 }
                 break;
+            case StateUser.New01:
+                if (int.TryParse(message, out var searchAge) && searchAge >= 16)
+                {
+                    user.State = StateUser.New1;
+                    user.SearchAge = searchAge;
+                    await bot.SendMessage(chatId, "Укажи свой возраст:");
+                }
+                else
+                {
+                    await bot.SendMessage(chatId, "Используй целые числа!");
+                }
+                break;
             case StateUser.New1:
-                if (int.TryParse(message, out var age))
+                if (int.TryParse(message, out var age) && age >= 16)
                 {
                     user.State = StateUser.New2;
                     user.Age = age;
@@ -96,7 +108,7 @@ internal class Dialog
                 {
                     keyboardAboutMe = new ReplyKeyboardMarkup(new KeyboardButton("Оставить текущее"));
                 }
-                user.State = StateUser.New6;
+                user.State = StateUser.New8; // скип фото
                 user.FirstName = message;
                 await bot.SendMessage(chatId, "Напиши о себе:", replyMarkup: keyboardAboutMe == null ? ReplyMarkup.RemoveKeyboard : keyboardAboutMe);
                 break;
@@ -167,5 +179,16 @@ internal class Dialog
             await bot.SendPhoto(user.ChatId, InputFile.FromFileId(user.PhotoId), message);
         else
             await bot.SendMessage(user.ChatId, message);
+    }
+
+    internal static async Task ViewProfile(ITelegramBotClient bot, TUser user, TUser? person)
+    {
+        //if (user.State != StateUser.Search) return;
+        var message = $"{person.FirstName}, {person.Age}, {person.City}\n\n{person.AboutMe}";
+        if (!string.IsNullOrEmpty(user.PhotoId))
+            await bot.SendPhoto(user.ChatId, InputFile.FromFileId(user.PhotoId), message, replyMarkup: mainKeyboard);
+        else
+            await bot.SendMessage(user.ChatId, message, replyMarkup: mainKeyboard);
+        user.Viewed += $"{person.ChatId};";
     }
 }
