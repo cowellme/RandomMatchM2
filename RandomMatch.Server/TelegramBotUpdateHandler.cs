@@ -1,16 +1,17 @@
 ﻿// Services/TelegramBotUpdateHandler.cs
 
 using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
+using RandomMatch.Server.Models;
 // ⬅️ важно!
 using Telegram.Bot;
 using Telegram.Bot.Exceptions;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using RandomMatch.Server.Models;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace RandomMatch.Server.Services;
 
@@ -63,8 +64,8 @@ public class TelegramBotUpdateHandler : BackgroundService
         var dateTimeNow = DateTime.Now;
         if (_startUp || dateTimeNow == DateTime.FromBinary(11))
         {
-            List<TUser> _bots = CreateBots();
-            _allUsers = _bots; //await userService.GetAllAsync();
+            //List<TUser> _bots = CreateBots();
+            _allUsers = await userService.GetAllAsync();
             _startUp = false;
         }
 
@@ -98,6 +99,9 @@ public class TelegramBotUpdateHandler : BackgroundService
 
                     switch (message)
                     {
+                        case "⬅️":
+                            BackProfile(user); 
+                            goto default;
                         case "❤️":
                             
                             var persone = LastPersone(user);
@@ -118,10 +122,17 @@ public class TelegramBotUpdateHandler : BackgroundService
                             }
                             break;
                         case "💤":
+                            ReplyKeyboardMarkup mainKeyboard = new ReplyKeyboardMarkup(
+                                new KeyboardButton("1"), 
+                                new KeyboardButton("2"), 
+                                new KeyboardButton("3"), 
+                                new KeyboardButton("4")) { ResizeKeyboard = true };
                             user.State = StateUser.Stop;
                             await _botClient.SendMessage(user.ChatId, $"1. Продолжить просмотр анкет\n" +
                                 $"2. Моя анкета\n" +
-                                $"3. Выключить моя анкету");
+                                $"3. Выключить мою анкету\n" +
+                                $"***\n" +
+                                $"4. Реферальная система", replyMarkup: mainKeyboard);
                             break;
                         default:
                             TUser? person;
@@ -147,6 +158,27 @@ public class TelegramBotUpdateHandler : BackgroundService
         {
             _logger.LogError(ex, "Ошибка при обработке сообщения от Telegram");
         }
+    }
+
+    private void BackProfile(TUser user)
+    {
+        try
+        {
+            if (!string.IsNullOrEmpty(user.Viewed))
+            {
+                var lastViewed = user.Viewed.Split(';').Where(x => !string.IsNullOrEmpty(x)).ToList();
+
+                for (int i = 0; i < lastViewed.Count; i++)
+                {
+                    if (i >= lastViewed.Count - 2)
+                    {
+                        user.Viewed = user.Viewed.Replace($"{lastViewed[i]};", "");
+                    }
+                }
+            }
+            
+        }
+        catch { }
     }
 
     private TUser? LastPersone(TUser user)

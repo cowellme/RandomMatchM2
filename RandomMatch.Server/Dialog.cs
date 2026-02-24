@@ -7,7 +7,7 @@ namespace RandomMatch.Server.Services;
 
 internal class Dialog
 {
-    private static ReplyKeyboardMarkup mainKeyboard = new ReplyKeyboardMarkup(new KeyboardButton("❤️"), new KeyboardButton("💌 / 📹"), new KeyboardButton("👎"), new KeyboardButton("💤"));
+    private static ReplyKeyboardMarkup mainKeyboard = new ReplyKeyboardMarkup(new KeyboardButton("❤️"), new KeyboardButton("💌 / 📹"), new KeyboardButton("👎"), new KeyboardButton("⬅️"), new KeyboardButton("💤")) { ResizeKeyboard = true};
     public static async Task TextMessage(ITelegramBotClient bot, TUser user, string message, PhotoSize[]? photo = null)
     {
         var chatId = user.ChatId;
@@ -44,7 +44,7 @@ internal class Dialog
                 {
                     user.State = StateUser.New2;
                     user.Age = age;
-                    await bot.SendMessage(chatId, "Укажи свой пол:", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")));
+                    await bot.SendMessage(chatId, "Укажи свой пол:", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")) { ResizeKeyboard = true});
                 }
                 else
                 {
@@ -57,15 +57,15 @@ internal class Dialog
                     case "муж.":
                         user.State = StateUser.New3;
                         user.Gender = GenderUser.Man;
-                        await bot.SendMessage(chatId, "Укажи кого ищем:", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")));
+                        await bot.SendMessage(chatId, "Укажи кого ищем:", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")) { ResizeKeyboard = true });
                         break;
                     case "жен.":
                         user.State = StateUser.New3;
                         user.Gender = GenderUser.Woman;
-                        await bot.SendMessage(chatId, "Укажи кого ищем:", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")));
+                        await bot.SendMessage(chatId, "Укажи кого ищем:", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")) { ResizeKeyboard = true });
                         break;
                     default:
-                        await bot.SendMessage(chatId, "Укажи с помощью кнопок", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")));
+                        await bot.SendMessage(chatId, "Укажи с помощью кнопок", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")) { ResizeKeyboard = true });
                         break;
                 }
                 break;
@@ -73,7 +73,7 @@ internal class Dialog
                 ReplyKeyboardMarkup? keyboardCity = null;
                 if (!string.IsNullOrEmpty(user.City))
                 {
-                    keyboardCity = new ReplyKeyboardMarkup(new KeyboardButton(user.City));
+                    keyboardCity = new ReplyKeyboardMarkup(new KeyboardButton(user.City) ) { ResizeKeyboard = true};
                 }
                 switch (message.ToLower())
                 {
@@ -88,7 +88,7 @@ internal class Dialog
                         await bot.SendMessage(chatId, "Напиши свой город:", replyMarkup: keyboardCity == null ? ReplyMarkup.RemoveKeyboard : keyboardCity);
                         break;
                     default:
-                        await bot.SendMessage(chatId, "Укажи с помощью кнопок", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")));
+                        await bot.SendMessage(chatId, "Укажи с помощью кнопок", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Муж."), new KeyboardButton("Жен.")) { ResizeKeyboard = true });
                         break;
                 }
                 break;
@@ -96,7 +96,7 @@ internal class Dialog
                 ReplyKeyboardMarkup? keyboardName = null;
                 if (!string.IsNullOrEmpty(user.FirstName))
                 {
-                    keyboardName = new ReplyKeyboardMarkup(new KeyboardButton(user.FirstName));
+                    keyboardName = new ReplyKeyboardMarkup(new KeyboardButton(user.FirstName)) { ResizeKeyboard = true };
                 }
                 user.State = StateUser.New5;
                 user.City = message;
@@ -106,9 +106,9 @@ internal class Dialog
                 ReplyKeyboardMarkup? keyboardAboutMe = null;
                 if (!string.IsNullOrEmpty(user.AboutMe))
                 {
-                    keyboardAboutMe = new ReplyKeyboardMarkup(new KeyboardButton("Оставить текущее"));
+                    keyboardAboutMe = new ReplyKeyboardMarkup(new KeyboardButton("Оставить текущее")) { ResizeKeyboard = true };
                 }
-                user.State = StateUser.New8; // скип фото
+                user.State = StateUser.New6; // скип фото
                 user.FirstName = message;
                 await bot.SendMessage(chatId, "Напиши о себе:", replyMarkup: keyboardAboutMe == null ? ReplyMarkup.RemoveKeyboard : keyboardAboutMe);
                 break;
@@ -116,10 +116,10 @@ internal class Dialog
                 ReplyKeyboardMarkup? keyboardPhoto = null;
                 if (!string.IsNullOrEmpty(user.PhotoId))
                 {
-                    keyboardPhoto = new ReplyKeyboardMarkup(new KeyboardButton("Оставить текущее"));
+                    keyboardPhoto = new ReplyKeyboardMarkup(new KeyboardButton("Оставить текущее")) { ResizeKeyboard = true };
                 }
                 user.State = StateUser.New7;
-                user.AboutMe = message;
+                user.AboutMe = message == "Оставить текущее" ? user.AboutMe : message;
                 await bot.SendMessage(chatId, "Пришли своё фото:", replyMarkup: keyboardPhoto == null ? ReplyMarkup.RemoveKeyboard : keyboardPhoto);
                 break;
             case StateUser.New7:
@@ -128,13 +128,13 @@ internal class Dialog
                     user.State = StateUser.New8;
                     user.PhotoId = photo[0].FileId;
                     await SendProfile(bot, user).ConfigureAwait(false);
-                    await bot.SendMessage(chatId, "Сохранить анкету?", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Да"), new KeyboardButton("Нет")));
+                    await bot.SendMessage(chatId, "Сохранить анкету?", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Да"), new KeyboardButton("Нет")) { ResizeKeyboard = true });
                 }
                 else if (message.ToLower() == "оставить текущее")
                 {
                     user.State = StateUser.New8;
                     await SendProfile(bot, user).ConfigureAwait(false);
-                    await bot.SendMessage(chatId, "Сохранить анкету?", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Да"), new KeyboardButton("Нет")));
+                    await bot.SendMessage(chatId, "Сохранить анкету?", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Да"), new KeyboardButton("Нет")) { ResizeKeyboard = true });
                 }
                 break;
             case StateUser.New8:
@@ -146,7 +146,7 @@ internal class Dialog
                         break;
                     case "нет":
                         user.State = StateUser.Stop;
-                        await bot.SendMessage(chatId, "Анкета отключена!", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Заполнить анкету")));
+                        await bot.SendMessage(chatId, "Анкета отключена!", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton("Заполнить анкету")) { ResizeKeyboard = true });
                         break;
                     default: 
                         break;
@@ -158,14 +158,48 @@ internal class Dialog
             case StateUser.Stop:
                 switch (message.ToLower())
                 {
-                    case "заполнить анкету":
-                        user.State = StateUser.New1;
-                        await bot.SendMessage(chatId, "Укажи свой возраст:", replyMarkup: new ReplyKeyboardMarkup(new KeyboardButton($"{user.Age}")));
+                    case "1":
+                        user.State = StateUser.Search;
+                        break;
+                    
+                    case "2":
+                        user.State = StateUser.MyProfile;
+                        await SendProfile(bot, user);
+                        break;
+                    case "3":
+                        user.State = StateUser.MyProfile;
+                        
+                        break;
+                    case "4":
+                        user.State = StateUser.New5;
                         break;
                 }    
                 break;
+
+            case StateUser.MyProfile:
+                switch (message)
+                {
+                    case "2":
+                        user.State = StateUser.New01;
+                        await bot.SendMessage(chatId, "Укажи какой возраст ищем:");
+                        break;
+                    case "3":
+                        user.State = StateUser.New7;
+                        keyboardPhoto = null;
+                        if (!string.IsNullOrEmpty(user.PhotoId))
+                        {
+                            keyboardPhoto = new ReplyKeyboardMarkup(new KeyboardButton("Оставить текущее")) { ResizeKeyboard = true };
+                        }
+                        await bot.SendMessage(chatId, "Пришли своё фото:", replyMarkup: keyboardPhoto == null ? ReplyMarkup.RemoveKeyboard : keyboardPhoto);
+                        break;
+                }
+                break;
+
             case StateUser.Search:
-                
+                switch (message)
+                {
+                    
+                }
                 break;
             
         }
@@ -174,19 +208,32 @@ internal class Dialog
     public static async Task SendProfile(ITelegramBotClient bot, TUser user)
     {
         //if (user.State != StateUser.Search) return;
-        var message = $"{user.FirstName}, {user.Age}, {user.City}\n\n{user.AboutMe}";
+        var message = $"Так выглядит твоя анкета:\n{user.FirstName}, {user.Age}, {user.City}\n\n{user.AboutMe}";
         if (!string.IsNullOrEmpty(user.PhotoId))
-            await bot.SendPhoto(user.ChatId, InputFile.FromFileId(user.PhotoId), message);
+            await bot.SendPhoto(user.ChatId, InputFile.FromFileId(user.PhotoId), message).ConfigureAwait(true);
         else
-            await bot.SendMessage(user.ChatId, message);
+            await bot.SendMessage(user.ChatId, message).ConfigureAwait(true);
+
+        if (user.State != StateUser.New8)
+        {
+            await bot.SendMessage(user.ChatId, "1. Смотреть анкеты\n" +
+            "2. Заполнить анкету заново\n" +
+            "3. Изменить фото\n" +
+            "4. Изменть текст анкеты\n");
+        }
     }
 
     internal static async Task ViewProfile(ITelegramBotClient bot, TUser user, TUser? person)
     {
         //if (user.State != StateUser.Search) return;
-        var message = $"{person.FirstName}, {person.Age}, {person.City}\n\n{person.AboutMe}";
+        if (person == null)
+        {
+            await bot.SendMessage(user.ChatId, "Подходящих анкет не найдено!", replyMarkup: mainKeyboard);
+            return; 
+        }
+        var message = $"{person.FirstName}, {person.Age}, {user.City}\n\n{person.AboutMe}";
         if (!string.IsNullOrEmpty(user.PhotoId))
-            await bot.SendPhoto(user.ChatId, InputFile.FromFileId(user.PhotoId), message, replyMarkup: mainKeyboard);
+            await bot.SendPhoto(user.ChatId, InputFile.FromFileId(person.PhotoId), message, replyMarkup: mainKeyboard);
         else
             await bot.SendMessage(user.ChatId, message, replyMarkup: mainKeyboard);
         user.Viewed += $"{person.ChatId};";

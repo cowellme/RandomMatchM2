@@ -1,6 +1,7 @@
 ﻿
 using Microsoft.EntityFrameworkCore;
 using RandomMatch.Server.Data;
+using RandomMatch.Server.Models;
 using RandomMatch.Server.Repositories;
 using RandomMatch.Server.Services;
 using Telegram.Bot;
@@ -47,7 +48,8 @@ namespace RandomMatch.Server
             //context.Database.EnsureDeleted();  // Удаляет ВСЮ базу
             //context.Database.EnsureCreated();  // Создаёт заново по моделям
 
-
+            //CreateWomenBots(context);
+            
             app.UseDefaultFiles();
             app.MapStaticAssets();
 
@@ -69,6 +71,29 @@ namespace RandomMatch.Server
             app.MapFallbackToFile("/index.html");
 
             app.Run();
+        }
+
+        private static void CreateWomenBots(AppDbContext context)
+        {
+            var strWoomen = File.ReadAllLines(@"C:\Users\Ksenia\Desktop\res.txt");
+            var userRange = new List<TUser>();
+            foreach (var line in strWoomen) 
+            {
+                var rnd = new Random();
+                var vars = line.Split(';');
+                var user = new TUser
+                {
+                    FirstName = vars[0],
+                    Age = rnd.Next(16, 25),
+                    AboutMe = vars[3],
+                    City = vars[2],
+                    PhotoId = "AgACAgIAAxkBAAIFPGmdYQoa5CJWsxslWdES78v8QxdQAALtFGsbY7LxSCz5b-MJQXMzAQADAgADcwADOgQ",
+                    Gender = rnd.Next(0, 1) > 0 ? GenderUser.Man : GenderUser.Woman,
+                };
+                userRange.Add(user);
+            }
+            context.Users.AddRange(userRange);
+            context.SaveChanges();
         }
     }
 }

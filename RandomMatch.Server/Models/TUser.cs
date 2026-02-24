@@ -24,6 +24,7 @@ namespace RandomMatch.Server.Models
         Stop,
         New01,
         SearchMessage,
+        MyProfile,
         Bot
     }
     public class TUser
